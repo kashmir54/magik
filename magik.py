@@ -1,6 +1,17 @@
 import argparse
 import sys
+import os
 
+class bcolors:
+    HEADER = '\033[95m'
+    OKBLUE = '\033[94m'
+    OKCYAN = '\033[96m'
+    OKGREEN = '\033[92m'
+    WARNING = '\033[93m'
+    FAIL = '\033[91m'
+    ENDC = '\033[0m'
+    BOLD = '\033[1m'
+    UNDERLINE = '\033[4m'
 
 magic_bytes = {
 
@@ -48,24 +59,30 @@ magic_bytes = {
 }
 
 
-def add_magic(filename, target_magic, option=0):
+def add_magic(file_path, target_magic, option=0):
 
 	current_file = ''
-	with open(filename, 'rb') as in_file:
+	with open(file_path, 'rb') as in_file:
 		current_file = in_file.read()
 
 	new_payload = magic_bytes[target_magic]['b'][option] + current_file
 
-	new_filename = 'mk_' + filename
+	file_name = os.path.basename(file_path)
+	dir_name = os.path.dirname(file_path)
+
+	new_filename = dir_name + '/mk_' + file_name
 	with open(new_filename, 'wb') as out_file:
 		out_file.write(new_payload)
 		
 
 if __name__ == '__main__':
 
-	parser = argparse.ArgumentParser(epilog="Select your input file and the target magic bytes", formatter_class=argparse.RawTextHelpFormatter)
+	parser = argparse.ArgumentParser(epilog="Select your input file and the target magic bytes", 
+		formatter_class=argparse.RawTextHelpFormatter, 
+		description=f"{bcolors.BOLD}{bcolors.WARNING}Available magic bytes:{bcolors.ENDC} {sorted(magic_bytes.keys())}\n{bcolors.BOLD}{bcolors.FAIL}Multiple payloads:{bcolors.ENDC} {sorted([x for x in magic_bytes.keys() if len(magic_bytes[x]['b'])>1 ])}")
+
 	parser.add_argument("filename", nargs='?', type=str,
-						help="Target filename")
+						help="Target filename. Output will be on same directory with mk_<original_filename>")
 	parser.add_argument("-m", "--magic", action="store",
 						help="Extension for selecting corresponding magic bytes")
 	parser.add_argument("-o", "--option", action="store",
